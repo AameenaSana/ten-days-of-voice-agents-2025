@@ -12,9 +12,9 @@ Keep this simple and focused: build a “Teach-the-Tutor” experience with thre
 
 - **Three learning modes**
 
-  - `learn` – the agent explains a concept. (With Murf falcon Voice - "Matthew")
+  - `learn` – the agent explains a concept. (With Murf Falcon Voice - "Matthew")
   - `quiz` – the agent asks you questions. (With Murf Falcon Voice - "Alicia" )
-  - `teach_back` – the agent asks _you_ to explain the concept back (and gives basic qualitative feedback). (With Murf Falcon voice - "Ken")
+  - `teach_back` – the agent asks _you_ to explain the concept back (and gives basic qualitative feedback). (With Murf Falcon Voice - "Ken")
 
 - **Small course content file**
   - Add a small JSON file (e.g. `shared-data/day4_tutor_content.json`) with a few concepts:

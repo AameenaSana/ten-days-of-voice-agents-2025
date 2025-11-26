@@ -1,7 +1,8 @@
 import logging
 import os
 import json
-from typing import Dict, Literal
+from datetime import datetime
+from typing import List, Optional
 
 from dotenv import load_dotenv
 from livekit.agents import (
@@ -25,59 +26,214 @@ logger = logging.getLogger("agent")
 
 load_dotenv(".env.local")
 
-# ========== DAY 4 CONFIG ==========
-CONTENT_PATH = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "shared-data", "day4_tutor_content.json")
-)
 
-TUTOR_VOICES = {
-    "learn": "en-US-matthew",   # Murf Falcon - Matthew
-    "quiz": "en-US-alicia",     # Murf Falcon - Alicia
-    "teach_back": "en-US-ken",  # Murf Falcon - Ken
-}
+@function_tool
+async def save_wellness(
+    ctx: RunContext,
+    mood: str,
+    energy: str,
+    objectives: List[str],
+    notes: Optional[str] = None,
+) -> str:
+    """Save a wellness check-in to `wellness_log.json` and return a short confirmation.
 
+    Schema (one entry):
+    {
+      "timestamp": "ISO string",
+      "mood": "user text",
+      "energy": "user text or scale",
+      "objectives": ["1..3 objectives"],
+      "notes": "optional agent summary"
+    }
+    """
 
-def load_content() -> Dict[str, dict]:
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(timespec="seconds"),
+        "mood": mood,
+        "energy": energy,
+        "objectives": objectives or [],
+        "notes": notes or "",
+    }
+
+    # Place file next to the backend folder (one level up from this file)
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    path = os.path.join(base_dir, "wellness_log.json")
+    # Ensure file exists and is a JSON array
     try:
-        with open(CONTENT_PATH, "r", encoding="utf-8") as f:
-            items = json.load(f)
-        return {item["id"]: item for item in items}
-    except Exception as e:
-        logger.error(f"Failed to load content: {e}")
-        return {}
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f) or []
+        else:
+            data = []
+    except Exception:
+        data = []
+
+    data.append(entry)
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return f"saved:{path}"
 
 
 @function_tool
-async def set_tutor_mode(
+async def find_faq(ctx: RunContext, query: str) -> str:
+    """Find a best-effort FAQ answer from `company_data.json`.
+
+    This is a simple keyword-match search over FAQ entries. Returns the
+    matched answer or a fallback indicating no answer found.
+    """
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    data_path = os.path.join(base_dir, "company_data.json")
+    try:
+        with open(data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        return "Sorry, I can't find the company FAQ right now."
+
+    faqs = data.get("faq", [])
+    q = (query or "").lower()
+    best = None
+    best_score = 0
+    for entry in faqs:
+        text = (entry.get("question", "") + " " + entry.get("answer", "")).lower()
+        # simple score: count of query words present
+        score = sum(1 for w in q.split() if w and w in text)
+        if score > best_score:
+            best_score = score
+            best = entry
+
+    if best and best_score > 0:
+        return f"FAQ: {best.get('question')}\nAnswer: {best.get('answer')}"
+    # fallback: if there's a short product summary, return that for general questions
+    summary = data.get("summary")
+    if summary and any(w in summary.lower() for w in q.split()):
+        return f"{summary}"
+
+    return "I don't have a direct answer in the FAQ for that — would you like me to connect you with a specialist or leave a message?"
+
+
+@function_tool
+async def save_lead(
     ctx: RunContext,
-    mode: Literal["learn", "quiz", "teach_back"],
-    concept_id: str,
+    name: Optional[str] = None,
+    company: Optional[str] = None,
+    email: Optional[str] = None,
+    role: Optional[str] = None,
+    use_case: Optional[str] = None,
+    team_size: Optional[str] = None,
+    timeline: Optional[str] = None,
+    notes: Optional[str] = None,
 ) -> str:
-    """
-    Switch the tutor mode and concept.
-    Modes: learn | quiz | teach_back
-    """
-    ctx.session.userdata["tutor_mode"] = mode
-    ctx.session.userdata["concept_id"] = concept_id
-    return f"mode_set:{mode}:{concept_id}"
+    """Persist a lead as JSON in `leads.json` and return confirmation path."""
+
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(timespec="seconds"),
+        "name": name or "",
+        "company": company or "",
+        "email": email or "",
+        "role": role or "",
+        "use_case": use_case or "",
+        "team_size": team_size or "",
+        "timeline": timeline or "",
+        "notes": notes or "",
+    }
+
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    path = os.path.join(base_dir, "leads.json")
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f) or []
+        else:
+            data = []
+    except Exception:
+        data = []
+
+    data.append(entry)
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    return f"saved:{path}"
 
 
 class Assistant(Agent):
-    def __init__(self, content: Dict[str, dict]):
-        instructions = f"""
-You are an Active Recall Coach (“Teach-the-Tutor”). 
-Greet the learner, ask which concept they want (e.g. variables, loops) and which mode: learn, quiz, or teach_back.
+    def __init__(self, previous_entry: Optional[dict] = None) -> None:
+        # Wellness-focused companion: daily check-ins, non-diagnostic support
+        prev_note = ""
+        if previous_entry:
+            prev_ts = previous_entry.get("timestamp")
+            prev_mood = previous_entry.get("mood")
+            prev_energy = previous_entry.get("energy")
+            prev_obj = ", ".join(previous_entry.get("objectives", []))
+            prev_note = (
+                f"Last time ({prev_ts}) you said your mood was '{prev_mood}' and energy was '{prev_energy}'. "
+                f"You were focusing on: {prev_obj}."
+            )
 
-Rules:
-- Use the JSON content provided by the backend when explaining, quizzing, or prompting teach-back.
-- Learn: explain the concept using its 'summary'. Keep it short and clear.
-- Quiz: ask 1–3 short questions; start with the concept's 'sample_question'. One at a time. Give brief feedback.
-- Teach_back: ask the learner to explain the concept. Give qualitative feedback comparing to 'summary'.
-- The learner can switch modes any time (“switch to quiz on loops”). When they do, call the tool set_tutor_mode(mode, concept_id).
-- Keep responses concise and spoken-friendly.
-"""
-        super().__init__(instructions=instructions, tools=[set_tutor_mode])
-        self.content = content
+        instructions = (
+            "You are a calm, grounded, and supportive health & wellness companion. "
+            "You are NOT a clinician and must not provide medical advice or diagnosis. "
+            "Your role is to do a short daily check-in: ask about mood, energy, and any stressors; "
+            "ask for 1–3 practical objectives for the day; offer short, realistic, non-medical suggestions; "
+            "and close with a concise recap and confirmation. "
+            "Keep suggestions small and actionable (e.g., take a 5-minute walk, break tasks into steps, drink water, take short breaks). "
+            "When the user confirms goals, persist the check-in by calling the tool"
+            " `save_wellness(mood, energy, objectives, notes)` with a brief agent summary sentence. "
+            "Always politely refuse harmful or unsafe requests. "
+        )
+
+        # If a previous entry exists, include a brief reference that the agent can use
+        if prev_note:
+            instructions = prev_note + " " + instructions
+
+        super().__init__(instructions=instructions, tools=[save_wellness])
+
+
+
+class SDRAgent(Agent):
+    def __init__(self) -> None:
+        # Load a short company summary if available and craft SDR instructions
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        data_path = os.path.join(base_dir, "company_data.json")
+        summary = ""
+        try:
+            with open(data_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                summary = data.get("summary", "")
+        except Exception:
+            summary = ""
+
+        instructions = (
+            "You are a friendly, professional Sales Development Representative (SDR) for the company described in the provided company data. "
+            "Greet visitors warmly, ask what brought them here, and focus the conversation on understanding their needs. "
+            "Use the FAQ tool when asked product/company/pricing questions, and do not invent details not present in the FAQ or company content. "
+            "Collect lead information naturally during the conversation: name, company, email, role, use case, team size, and timeline. "
+            "When the user indicates they are done (e.g., 'That's all', 'Thanks', 'I'm done'), summarize the lead concisely and persist the lead by calling the tool `save_lead(...)`. "
+        )
+
+        if summary:
+            instructions = f"Company summary: {summary}\n" + instructions
+
+        super().__init__(instructions=instructions, tools=[find_faq, save_lead])
+
+    # To add tools, use the @function_tool decorator.
+    # Here's an example that adds a simple weather tool.
+    # You also have to add `from livekit.agents import function_tool, RunContext` to the top of this file
+    # @function_tool
+    # async def lookup_weather(self, context: RunContext, location: str):
+    #     """Use this tool to look up current weather information in the given location.
+    #
+    #     If the location is not supported by the weather service, the tool will indicate this. You must tell the user the location's weather is unavailable.
+    #
+    #     Args:
+    #         location: The location to look up weather information for (e.g. city name)
+    #     """
+    #
+    #     logger.info(f"Looking up weather for {location}")
+    #
+    #     return "sunny with a temperature of 70 degrees."
 
 
 def prewarm(proc: JobProcess):
@@ -85,22 +241,51 @@ def prewarm(proc: JobProcess):
 
 
 async def entrypoint(ctx: JobContext):
-    ctx.log_context_fields = {"room": ctx.room.name}
+    # Logging setup
+    # Add any other context you want in all log entries here
+    ctx.log_context_fields = {
+        "room": ctx.room.name,
+    }
 
+    # Set up a voice AI pipeline using OpenAI, Cartesia, AssemblyAI, and the LiveKit turn detector
     session = AgentSession(
+        # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
+        # See all available models at https://docs.livekit.io/agents/models/stt/
         stt=deepgram.STT(model="nova-3"),
-        llm=google.LLM(model="gemini-2.5-flash"),
+        # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
+        # See all available models at https://docs.livekit.io/agents/models/llm/
+        llm=google.LLM(
+                model="gemini-2.5-flash",
+            ),
+        # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
+        # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
         tts=murf.TTS(
-            voice="en-US-matthew",
-            style="Conversation",
-            tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-            text_pacing=True,
-        ),
+                voice="en-US-matthew", 
+                style="Conversation",
+                tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
+                text_pacing=True
+            ),
+        # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
+        # See more at https://docs.livekit.io/agents/build/turns
         turn_detection=MultilingualModel(),
         vad=ctx.proc.userdata["vad"],
+        # allow the LLM to generate a response while waiting for the end of turn
+        # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
         preemptive_generation=True,
     )
 
+    # To use a realtime model instead of a voice pipeline, use the following session setup instead.
+    # (Note: This is for the OpenAI Realtime API. For other providers, see https://docs.livekit.io/agents/models/realtime/))
+    # 1. Install livekit-agents[openai]
+    # 2. Set OPENAI_API_KEY in .env.local
+    # 3. Add `from livekit.plugins import openai` to the top of this file
+    # 4. Use the following session setup instead of the version above
+    # session = AgentSession(
+    #     llm=openai.realtime.RealtimeModel(voice="marin")
+    # )
+
+    # Metrics collection, to measure pipeline performance
+    # For more information, see https://docs.livekit.io/agents/build/metrics/
     usage_collector = metrics.UsageCollector()
 
     @session.on("metrics_collected")
@@ -114,39 +299,39 @@ async def entrypoint(ctx: JobContext):
 
     ctx.add_shutdown_callback(log_usage)
 
-    # ========== DAY 4 TUTOR LOGIC ==========
-    content = load_content()
-    session.userdata["tutor_mode"] = "learn"
-    session.userdata["concept_id"] = "variables" if "variables" in content else next(iter(content.keys()), "")
+    # # Add a virtual avatar to the session, if desired
+    # # For other providers, see https://docs.livekit.io/agents/models/avatar/
+    # avatar = hedra.AvatarSession(
+    #   avatar_id="...",  # See https://docs.livekit.io/agents/models/avatar/plugins/hedra
+    # )
+    # # Start the avatar and wait for it to join
+    # await avatar.start(session, room=ctx.room)
 
-    async def apply_voice_for_mode():
-        mode = session.userdata.get("tutor_mode", "learn")
-        voice = TUTOR_VOICES.get(mode, "en-US-matthew")
-        await session.set_tts(
-            murf.TTS(
-                voice=voice,
-                style="Conversation",
-                tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-                text_pacing=True,
-            )
-        )
+    # Before starting, read the wellness log and pass the most recent entry to the Assistant
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    wellness_path = os.path.join(base_dir, "wellness_log.json")
+    last_entry = None
+    try:
+        if os.path.exists(wellness_path):
+            with open(wellness_path, "r", encoding="utf-8") as f:
+                data = json.load(f) or []
+                if isinstance(data, list) and data:
+                    last_entry = data[-1]
+    except Exception:
+        last_entry = None
 
-    await apply_voice_for_mode()
-
+    # Start the session, which initializes the voice pipeline and warms up the models
+    # Use the SDR agent persona so the assistant behaves like an SDR for the chosen company
     await session.start(
-        agent=Assistant(content=content),
+        agent=SDRAgent(),
         room=ctx.room,
-        room_input_options=RoomInputOptions(noise_cancellation=noise_cancellation.BVC()),
+        room_input_options=RoomInputOptions(
+            # For telephony applications, use `BVCTelephony` for best results
+            noise_cancellation=noise_cancellation.BVC(),
+        ),
     )
 
-    @session.on("tool_result")
-    async def _on_tool_result(ev):
-        try:
-            if isinstance(ev.result, str) and ev.result.startswith("mode_set:"):
-                await apply_voice_for_mode()
-        except Exception:
-            pass
-
+    # Join the room and connect to the user
     await ctx.connect()
 
 

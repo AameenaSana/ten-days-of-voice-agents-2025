@@ -1,0 +1,45 @@
+{
+  "order_id": "83e2b8fc",
+  "timestamp": "2025-11-28T14:32:20.981784Z",
+  "customer_name": "Sana",
+  "address": "Bangalore",
+  "status": "received",
+  "total": 392.0,
+  "items": [
+    {
+      "item_id": "maggi-masala",
+      "name": "Maggi 2-Minute Noodles",
+      "unit_price": 14.0,
+      "quantity": 2,
+      "notes": ""
+    },
+    {
+      "item_id": "milk-amul-1l",
+      "name": "Amul Taaza Milk",
+      "unit_price": 72.0,
+      "quantity": 2,
+      "notes": ""
+    },
+    {
+      "item_id": "tea-250g",
+      "name": "Red Label Tea",
+      "unit_price": 140.0,
+      "quantity": 1,
+      "notes": ""
+    },
+    {
+      "item_id": "sugar-1kg",
+      "name": "Madhur Sugar",
+      "unit_price": 60.0,
+      "quantity": 1,
+      "notes": ""
+    },
+    {
+      "item_id": "ginger-100g",
+      "name": "Fresh Ginger",
+      "unit_price": 20.0,
+      "quantity": 1,
+      "notes": ""
+    }
+  ]
+}

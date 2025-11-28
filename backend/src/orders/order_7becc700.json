@@ -1,0 +1,52 @@
+{
+  "order_id": "7becc700",
+  "timestamp": "2025-11-28T14:53:43.745985Z",
+  "customer_name": "Sana",
+  "address": "Bangalore",
+  "status": "received",
+  "total": 540.0,
+  "items": [
+    {
+      "item_id": "paneer-200g",
+      "name": "Amul Malai Paneer",
+      "unit_price": 95.0,
+      "quantity": 2,
+      "notes": "2 packets"
+    },
+    {
+      "item_id": "butter-100g",
+      "name": "Amul Butter",
+      "unit_price": 58.0,
+      "quantity": 1,
+      "notes": "1 packet"
+    },
+    {
+      "item_id": "milk-amul-1l",
+      "name": "Amul Taaza Milk",
+      "unit_price": 72.0,
+      "quantity": 1,
+      "notes": ""
+    },
+    {
+      "item_id": "tea-250g",
+      "name": "Red Label Tea",
+      "unit_price": 140.0,
+      "quantity": 1,
+      "notes": ""
+    },
+    {
+      "item_id": "sugar-1kg",
+      "name": "Madhur Sugar",
+      "unit_price": 60.0,
+      "quantity": 1,
+      "notes": ""
+    },
+    {
+      "item_id": "ginger-100g",
+      "name": "Fresh Ginger",
+      "unit_price": 20.0,
+      "quantity": 1,
+      "notes": ""
+    }
+  ]
+}

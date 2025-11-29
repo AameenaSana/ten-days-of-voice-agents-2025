@@ -1,0 +1,56 @@
+[
+  {
+    "order_id": "572c6dfa",
+    "customer": "Shana",
+    "timestamp": "2025-11-29T17:33:32.650968Z",
+    "total": 2798.0,
+    "currency": "INR",
+    "items": [
+      {
+        "id": "hoodie-001",
+        "name": "Classic Black Hoodie",
+        "price": 999.0,
+        "quantity": 1
+      },
+      {
+        "id": "sneakers-001",
+        "name": "White Casual Sneakers",
+        "price": 1799.0,
+        "quantity": 1
+      }
+    ],
+    "status": "confirmed"
+  },
+  {
+    "order_id": "d1aa85b4",
+    "customer": "Sana",
+    "timestamp": "2025-11-29T19:56:50.729884Z",
+    "total": 999.0,
+    "currency": "INR",
+    "items": [
+      {
+        "id": "hoodie-001",
+        "name": "Classic Black Hoodie",
+        "price": 999.0,
+        "quantity": 1
+      }
+    ],
+    "status": "confirmed"
+  },
+  {
+    "order_id": "ee0b81b5",
+    "customer": "Amina",
+    "timestamp": "2025-11-29T19:58:10.699513Z",
+    "total": 499.0,
+    "currency": "INR",
+    "items": [
+      {
+        "id": "tshirt-001",
+        "name": "White Minimal T-Shirt",
+        "price": 499.0,
+        "quantity": 1
+      }
+    ],
+    "status": "confirmed"
+  }
+]

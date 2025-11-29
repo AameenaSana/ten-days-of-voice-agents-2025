@@ -1,0 +1,188 @@
+[
+  {
+    "id": "hoodie-001",
+    "name": "Classic Black Hoodie",
+    "description": "Soft cotton hoodie with kangaroo pocket and drawstring hood.",
+    "price": 999,
+    "currency": "INR",
+    "category": "clothing",
+    "color": "black",
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "hoodie-002",
+    "name": "Grey Oversized Hoodie",
+    "description": "Cozy oversized hoodie made from organic cotton.",
+    "price": 1199,
+    "currency": "INR",
+    "category": "clothing",
+    "color": "grey",
+    "sizes": ["M", "L", "XL"]
+  },
+  {
+    "id": "tshirt-001",
+    "name": "White Minimal T-Shirt",
+    "description": "Plain cotton tee, soft and breathable fabric.",
+    "price": 499,
+    "currency": "INR",
+    "category": "clothing",
+    "color": "white",
+    "sizes": ["S", "M", "L", "XL"]
+  },
+  {
+    "id": "tshirt-002",
+    "name": "Graphic Tee - Mountain Explorer",
+    "description": "Printed round-neck t-shirt for adventure lovers.",
+    "price": 699,
+    "currency": "INR",
+    "category": "clothing",
+    "color": "navy blue",
+    "sizes": ["S", "M", "L"]
+  },
+  {
+    "id": "mug-001",
+    "name": "Stoneware Coffee Mug",
+    "description": "Handcrafted ceramic mug with matte finish.",
+    "price": 799,
+    "currency": "INR",
+    "category": "home",
+    "color": "white",
+    "capacity": "350ml"
+  },
+  {
+    "id": "mug-002",
+    "name": "Midnight Blue Mug",
+    "description": "Glossy blue ceramic coffee mug with ergonomic handle.",
+    "price": 849,
+    "currency": "INR",
+    "category": "home",
+    "color": "blue",
+    "capacity": "300ml"
+  },
+  {
+    "id": "bottle-001",
+    "name": "Stainless Steel Water Bottle",
+    "description": "Vacuum insulated bottle keeps drinks hot or cold for 12 hours.",
+    "price": 1099,
+    "currency": "INR",
+    "category": "home",
+    "color": "silver",
+    "capacity": "750ml"
+  },
+  {
+    "id": "headphones-001",
+    "name": "BassBoost Wireless Headphones",
+    "description": "Bluetooth headphones with deep bass and noise isolation.",
+    "price": 1899,
+    "currency": "INR",
+    "category": "electronics",
+    "color": "black"
+  },
+  {
+    "id": "earbuds-001",
+    "name": "True Wireless Earbuds",
+    "description": "Compact earbuds with touch controls and long battery life.",
+    "price": 2499,
+    "currency": "INR",
+    "category": "electronics",
+    "color": "white"
+  },
+  {
+    "id": "watch-001",
+    "name": "Smart Fitness Watch",
+    "description": "Tracks steps, heart rate, and sleep; waterproof design.",
+    "price": 3499,
+    "currency": "INR",
+    "category": "electronics",
+    "color": "black"
+  },
+  {
+    "id": "lamp-001",
+    "name": "Bedside Table Lamp",
+    "description": "Warm LED table lamp with fabric shade and wooden base.",
+    "price": 1299,
+    "currency": "INR",
+    "category": "home",
+    "color": "beige"
+  },
+  {
+    "id": "bag-001",
+    "name": "Leather Laptop Bag",
+    "description": "Premium brown leather laptop bag with padded sleeve.",
+    "price": 2599,
+    "currency": "INR",
+    "category": "accessories",
+    "color": "brown"
+  },
+  {
+    "id": "sneakers-001",
+    "name": "White Casual Sneakers",
+    "description": "Comfortable everyday sneakers with cushioned sole.",
+    "price": 1799,
+    "currency": "INR",
+    "category": "footwear",
+    "color": "white",
+    "sizes": ["6", "7", "8", "9", "10"]
+  },
+  {
+    "id": "book-001",
+    "name": "Atomic Habits",
+    "description": "Best-selling self-improvement book by James Clear.",
+    "price": 449,
+    "currency": "INR",
+    "category": "books"
+  },
+  {
+    "id": "book-002",
+    "name": "Ikigai",
+    "description": "Japanese philosophy book on living a long and happy life.",
+    "price": 399,
+    "currency": "INR",
+    "category": "books"
+  },
+  {
+    "id": "perfume-001",
+    "name": "Oud Noir Perfume",
+    "description": "Luxury fragrance with woody and oriental notes.",
+    "price": 2199,
+    "currency": "INR",
+    "category": "beauty",
+    "size": "100ml"
+  },
+  {
+    "id": "candle-001",
+    "name": "Lavender Scented Candle",
+    "description": "Aromatic soy candle with soothing lavender fragrance.",
+    "price": 699,
+    "currency": "INR",
+    "category": "home",
+    "burn_time": "35 hours"
+  },
+  {
+    "id": "plant-001",
+    "name": "Money Plant in Ceramic Pot",
+    "description": "Low-maintenance indoor plant in a stylish white pot.",
+    "price": 499,
+    "currency": "INR",
+    "category": "home",
+    "color": "green"
+  },
+  {
+    "id": "keyboard-001",
+    "name": "Wireless Keyboard & Mouse Combo",
+    "description": "Compact keyboard with silent keys and ergonomic mouse.",
+    "price": 1599,
+    "currency": "INR",
+    "category": "electronics",
+    "color": "black"
+  },
+  {
+    "id": "lamp-002",
+    "name": "Touch Control Study Lamp",
+    "description": "Adjustable brightness LED lamp with touch control.",
+    "price": 1399,
+    "currency": "INR",
+    "category": "home",
+    "color": "white"
+  }
+]

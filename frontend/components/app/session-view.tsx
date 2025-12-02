@@ -6,7 +6,7 @@ import type { AppConfig } from '@/app-config';
 import { ChatTranscript } from '@/components/app/chat-transcript';
 import { PreConnectMessage } from '@/components/app/preconnect-message';
 import { TileLayout } from '@/components/app/tile-layout';
-import { RestartStoryButton } from '@/components/app/restart-story-button';
+// Shopping UI removed — this app focuses on the Improv Battle voice experience
 import {
   AgentControlBar,
   type ControlBarControls,
@@ -71,7 +71,7 @@ export const SessionView = ({
   useDebugMode({ enabled: IN_DEVELOPMENT });
 
   const messages = useChatMessages();
-  const [chatOpen, setChatOpen] = useState(true); // Show chat by default for Game Master experience
+  const [chatOpen, setChatOpen] = useState(false); // Chat input panel (separate from transcript visibility)
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const controls: ControlBarControls = {
@@ -83,37 +83,47 @@ export const SessionView = ({
   };
 
   useEffect(() => {
-    const lastMessage = messages.at(-1);
-    const lastMessageIsLocal = lastMessage?.from?.isLocal === true;
-
-    if (scrollAreaRef.current && lastMessageIsLocal) {
-      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+    // Auto-scroll to bottom when new messages arrive or update (for real-time streaming)
+    if (scrollAreaRef.current && messages.length > 0) {
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        if (scrollAreaRef.current) {
+          scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+        }
+      });
     }
   }, [messages]);
 
   return (
     <section className="bg-background relative z-10 h-full w-full overflow-hidden" {...props}>
-      {/* Chat Transcript */}
-      <div
-        className={cn(
-          'fixed inset-0 grid grid-cols-1 grid-rows-1',
-          !chatOpen && 'pointer-events-none'
-        )}
-      >
+      {/* Main Layout: Voice session with transcript and tile layout */}
+      <div className="flex h-full flex-col pt-16 pb-32">
+        <div className="flex-1 overflow-y-auto px-4 md:px-6">
+          <div className="mx-auto max-w-2xl py-8">
+            <h2 className="text-2xl font-bold mb-2">Improv Battle — Voice Session</h2>
+            <p className="text-sm text-muted-foreground">Join the session and perform — the host will guide you through rounds.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Chat Transcript - Overlay for voice interaction */}
+      <div className="fixed inset-0 grid grid-cols-1 grid-rows-1 pointer-events-none z-20">
         <Fade top className="absolute inset-x-4 top-0 h-40" />
         <ScrollArea ref={scrollAreaRef} className="px-4 pt-40 pb-[150px] md:px-6 md:pb-[180px]">
-          <ChatTranscript
-            hidden={!chatOpen}
-            messages={messages}
-            className="mx-auto max-w-2xl space-y-3 transition-opacity duration-300 ease-out"
-          />
+          <div className="mx-auto max-w-2xl space-y-3">
+            <ChatTranscript
+              hidden={false}
+              messages={messages}
+              className="transition-opacity duration-300 ease-out"
+            />
+          </div>
         </ScrollArea>
       </div>
 
       {/* Tile Layout */}
       <TileLayout chatOpen={chatOpen} />
 
-      {/* Bottom */}
+      {/* Bottom Control Bar */}
       <MotionBottom
         {...BOTTOM_VIEW_MOTION_PROPS}
         className="fixed inset-x-3 bottom-0 z-50 md:inset-x-12"
@@ -123,9 +133,6 @@ export const SessionView = ({
         )}
         <div className="bg-background relative mx-auto max-w-2xl pb-3 md:pb-12">
           <Fade bottom className="absolute inset-x-0 top-0 h-4 -translate-y-full" />
-           <div className="pointer-events-auto px-3 md:px-0">
-             <RestartStoryButton />
-           </div>
           <AgentControlBar controls={controls} onChatOpenChange={setChatOpen} />
         </div>
       </MotionBottom>
